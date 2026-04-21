@@ -24,6 +24,7 @@ jobs:
         run: |
           git clone https://github.com/v2fly/geoip.git
           cd geoip
+          go mod download
 
       - name: Prepare custom IP list
         run: |
