@@ -1,1 +1,43 @@
+name: Build GeoSite
 
+on:
+  push:
+    paths:
+      - 'geosite-rules/**.txt'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+
+      - name: Install domain-list-community
+        run: |
+          go install github.com/v2fly/domain-list-community@latest
+
+      - name: Combine rule files and build geosite.dat
+        run: |
+          mkdir -p temp
+          cat geosite-rules/*.txt > temp/combined.txt
+          domain-list-community -in temp/combined.txt -out geosite.dat
+
+      - name: Create Release and Upload Asset
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: geosite-latest
+          name: GeoSite Latest
+          body: Автоматическая сборка geosite.dat
+          draft: false
+          prerelease: false
+          files: geosite.dat
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
