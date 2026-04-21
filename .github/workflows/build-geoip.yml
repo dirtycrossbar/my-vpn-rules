@@ -1,1 +1,48 @@
+name: Build GeoIP
 
+on:
+  push:
+    paths:
+      - 'geoip-rules/**.txt'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+
+      - name: Clone v2fly/geoip
+        run: |
+          git clone https://github.com/v2fly/geoip.git
+          cd geoip
+
+      - name: Prepare custom IP list
+        run: |
+          cat geoip-rules/*.txt > custom-ips.txt
+          echo "text:custom-ips.txt" >> geoip/config.json
+
+      - name: Build geoip.dat
+        run: |
+          cd geoip
+          go run ./ -c config.json
+
+      - name: Create Release and Upload Asset
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: geoip-latest
+          name: GeoIP Latest
+          body: Автоматическая сборка geoip.dat
+          draft: false
+          prerelease: false
+          files: geoip/geoip.dat
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
