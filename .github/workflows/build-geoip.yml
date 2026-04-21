@@ -34,23 +34,22 @@ jobs:
       - name: Build geoip.dat
         run: |
           cd compiler
-          mkdir -p text
-          cp ../my-rules/geoip-rules/*.txt text/
           
-          # Генерируем config.json
+          # Генерируем правильный config.json
           echo '{' > config.json
           echo '  "input": [' >> config.json
           first=true
-          for f in text/*.txt; do
+          for f in ../my-rules/geoip-rules/*.txt; do
             name=$(basename "$f" .txt)
+            abs_path=$(realpath "$f")
             if [ "$first" = true ]; then first=false; else echo ',' >> config.json; fi
-            echo "    {\"type\": \"text\", \"action\": \"add\", \"args\": [\"$name\", \"$f\"]}" >> config.json
+            echo "    {\"type\": \"text\", \"action\": \"add\", \"args\": [\"$name\", \"file://$abs_path\"]}" >> config.json
           done
           echo '  ],' >> config.json
-          echo '  "output": [{"type": "v2rayGeoIPDat", "args": ["geoip.dat"]}]' >> config.json
+          echo '  "output": [{"type": \"v2rayGeoIPDat\", \"args\": [\"geoip.dat\"]}]' >> config.json
           echo '}' >> config.json
           
-          # Запускаем конвертацию с явным указанием подкоманды convert
+          cat config.json
           go run ./ convert -c config.json
           cp geoip.dat ../geoip.dat
 
