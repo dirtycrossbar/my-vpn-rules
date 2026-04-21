@@ -5,7 +5,6 @@ on:
   push:
     paths:
       - 'geoip-rules/**.txt'
-      - 'config.json'
 
 permissions:
   contents: write
@@ -26,7 +25,24 @@ jobs:
         run: |
           git clone https://github.com/Loyalsoldier/geoip.git compiler
           cd compiler
-          cp ../config.json ./config.json
+          
+          # Копируем ваши файлы прямо в папку компилятора
+          cp ../geoip-rules/*.txt .
+          
+          # Создаем простой и правильный config.json
+          echo '{' > config.json
+          echo '  "input": [' >> config.json
+          first=true
+          for f in *.txt; do
+            name=$(basename "$f" .txt)
+            if [ "$first" = true ]; then first=false; else echo ',' >> config.json; fi
+            echo "    {\"type\": \"text\", \"action\": \"add\", \"args\": [\"$name\", \"$f\"]}" >> config.json
+          done
+          echo '  ],' >> config.json
+          echo '  "output": [{"type": "v2rayGeoIPDat", "args": ["geoip.dat"]}]' >> config.json
+          echo '}' >> config.json
+          
+          cat config.json
           go run ./ convert -c config.json
           cp geoip.dat ../geoip.dat
 
