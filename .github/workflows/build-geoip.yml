@@ -35,18 +35,18 @@ jobs:
         run: |
           cd compiler
           
-          # Генерируем config.json (без экранирования кавычек)
+          # Создаём правильную структуру config.json для Loyalsoldier/geoip
           echo '{' > config.json
-          echo '  "input": [' >> config.json
+          echo '  "lists": [' >> config.json
           first=true
           for f in ../my-rules/geoip-rules/*.txt; do
             name=$(basename "$f" .txt)
             abs_path=$(realpath "$f")
             if [ "$first" = true ]; then first=false; else echo ',' >> config.json; fi
-            echo "    {\"type\": \"text\", \"action\": \"add\", \"args\": [\"$name\", \"file://$abs_path\"]}" >> config.json
+            echo "    {\"name\": \"$name\", \"uri\": \"file://$abs_path\"}" >> config.json
           done
           echo '  ],' >> config.json
-          echo '  "output": [{"type": "v2rayGeoIPDat", "args": ["geoip.dat"]}]' >> config.json
+          echo '  "output": {"type": "v2rayGeoIPDat", "args": ["geoip.dat"]}' >> config.json
           echo '}' >> config.json
           
           cat config.json
