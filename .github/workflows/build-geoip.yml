@@ -30,15 +30,18 @@ jobs:
 
       - name: Build geoip.dat
         run: |
-          # 1. Объединяем все ваши IP-файлы в один
+          # Объединяем все IP-файлы в один
           cat my-rules/geoip-rules/*.txt > custom-ips.txt
           
-          # 2. Создаем конфиг для компилятора, указывая ему использовать ваш файл
+          # Создаём конфиг для компилятора
           echo '["text:custom-ips.txt"]' > config.json
           
-          # 3. Переходим в папку компилятора и запускаем сборку
+          # Переходим в папку компилятора и запускаем сборку (без -o)
           cd compiler
-          go run ./ -c ../config.json -o ../geoip.dat
+          go run ./ -c ../config.json
+          
+          # Забираем готовый файл и кладём в корень
+          cp geoip.dat ../geoip.dat
 
       - name: Create Release and Upload Asset
         uses: softprops/action-gh-release@v2
