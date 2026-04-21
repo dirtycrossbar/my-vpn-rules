@@ -5,6 +5,7 @@ on:
   push:
     paths:
       - 'geoip-rules/**.txt'
+      - 'config.json'
 
 permissions:
   contents: write
@@ -13,43 +14,19 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout your repository
+      - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          path: my-rules
-
-      - name: Checkout Loyalsoldier/geoip compiler
-        uses: actions/checkout@v4
-        with:
-          repository: Loyalsoldier/geoip
-          path: compiler
 
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version-file: compiler/go.mod
-          cache: true
-          cache-dependency-path: compiler/go.sum
+          go-version: '1.25'
 
       - name: Build geoip.dat
         run: |
+          git clone https://github.com/Loyalsoldier/geoip.git compiler
           cd compiler
-          
-          # Создаем правильный config.json
-          echo '{' > config.json
-          echo '  "input": [' >> config.json
-          first=true
-          for f in ../my-rules/geoip-rules/*.txt; do
-            name=$(basename "$f" .txt)
-            abs_path=$(realpath "$f")
-            if [ "$first" = true ]; then first=false; else echo ',' >> config.json; fi
-            echo "    {\"type\": \"text\", \"action\": \"add\", \"args\": [\"$name\", \"file://$abs_path\"]}" >> config.json
-          done
-          echo '  ],' >> config.json
-          echo '  "output": [{"type": "v2rayGeoIPDat", "args": ["geoip.dat"]}]' >> config.json
-          echo '}' >> config.json
-          
-          cat config.json
+          cp ../config.json ./config.json
           go run ./ convert -c config.json
           cp geoip.dat ../geoip.dat
 
