@@ -17,8 +17,9 @@ jobs:
 
       - name: Download domain-list-community binary
         run: |
-          curl -L -o dlc https://github.com/v2fly/domain-list-community/releases/latest/download/domain-list-community-linux-amd64
-          chmod +x dlc
+          wget https://github.com/v2fly/domain-list-community/releases/download/20240328144447/domain-list-community-linux-64
+          chmod +x domain-list-community-linux-64
+          mv domain-list-community-linux-64 dlc
 
       - name: Combine rule files and build geosite.dat
         run: |
