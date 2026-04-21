@@ -21,10 +21,19 @@ jobs:
           chmod +x domain-list-community-linux-64
           mv domain-list-community-linux-64 dlc
 
-      - name: Combine rule files and build geosite.dat
+      - name: Combine rule files
         run: |
           mkdir -p temp
           cat geosite-rules/*.txt > temp/combined.txt
+
+      - name: Debug - show combined file (first 20 lines)
+        run: |
+          echo "=== COMBINED.TXT (первые 20 строк) ==="
+          head -n 20 temp/combined.txt
+          echo "=== КОНЕЦ ==="
+
+      - name: Build geosite.dat
+        run: |
           ./dlc -in temp/combined.txt -out geosite.dat
 
       - name: Create Release and Upload Asset
