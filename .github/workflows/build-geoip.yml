@@ -1,10 +1,10 @@
 name: Build GeoIP
 
 on:
+  workflow_dispatch:
   push:
     paths:
       - 'geoip-rules/**.txt'
-  workflow_dispatch:
 
 jobs:
   build:
@@ -12,32 +12,38 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Checkout code
+      - name: Checkout your repository
         uses: actions/checkout@v4
+        with:
+          path: my-rules
 
-      - name: Download geoip binary
-        run: |
-          wget https://github.com/v2fly/geoip/releases/download/20240411163810/geoip-linux-64
-          chmod +x geoip-linux-64
-          mv geoip-linux-64 geoip
+      - name: Checkout geoip compiler
+        uses: actions/checkout@v4
+        with:
+          repository: v2fly/geoip
+          path: compiler
 
-      - name: Prepare custom IP list
-        run: |
-          cat geoip-rules/*.txt > custom-ips.txt
-          echo "text:custom-ips.txt" > config.json
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
 
       - name: Build geoip.dat
         run: |
-          ./geoip -c config.json -o geoip.dat
+          # 1. Объединяем все ваши IP-файлы в один
+          cat my-rules/geoip-rules/*.txt > custom-ips.txt
+          
+          # 2. Создаем конфиг для компилятора, указывая ему использовать ваш файл
+          echo '["text:custom-ips.txt"]' > config.json
+          
+          # 3. Переходим в папку компилятора и запускаем сборку
+          cd compiler
+          go run ./ -c ../config.json -o ../geoip.dat
 
       - name: Create Release and Upload Asset
         uses: softprops/action-gh-release@v2
         with:
           tag_name: geoip-latest
-          name: GeoIP Latest
-          body: Автоматическая сборка geoip.dat
-          draft: false
-          prerelease: false
           files: geoip.dat
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
