@@ -1,0 +1,8 @@
+{
+  "input": [
+    {"type": "text", "action": "add", "args": ["instagram", "file://geoip-rules/instagram.txt"]},
+    {"type": "text", "action": "add", "args": ["telegram", "file://geoip-rules/telegram.txt"]},
+    {"type": "text", "action": "add", "args": ["whatsapp", "file://geoip-rules/whatsapp.txt"]}
+  ],
+  "output": [{"type": "v2rayGeoIPDat", "args": ["geoip.dat"]}]
+}
