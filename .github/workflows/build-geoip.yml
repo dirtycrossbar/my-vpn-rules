@@ -14,34 +14,12 @@ jobs:
     steps:
       - name: Checkout your repository
         uses: actions/checkout@v4
-        with:
-          path: my-rules
 
-      - name: Checkout geoip compiler
-        uses: actions/checkout@v4
+      - name: Build geoip.dat using official action
+        uses: v2fly/geoip-action@v1
         with:
-          repository: v2fly/geoip
-          path: compiler
-
-      - name: Setup Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.22'
-
-      - name: Build geoip.dat
-        run: |
-          # Объединяем все IP-файлы в один
-          cat my-rules/geoip-rules/*.txt > custom-ips.txt
-          
-          # Создаём правильный JSON-конфиг
-          echo '{"input": ["text:custom-ips.txt"], "output": "geoip.dat"}' > config.json
-          
-          # Переходим в папку компилятора и запускаем сборку
-          cd compiler
-          go run ./ -c ../config.json
-          
-          # Забираем готовый файл и кладём в корень
-          cp geoip.dat ../geoip.dat
+          input: geoip-rules/*.txt
+          output: geoip.dat
 
       - name: Create Release and Upload Asset
         uses: softprops/action-gh-release@v2
