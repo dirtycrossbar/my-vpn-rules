@@ -21,16 +21,16 @@ jobs:
           chmod +x domain-list-community-linux-64
           mv domain-list-community-linux-64 dlc
 
-      - name: Combine rule files
+      - name: Prepare rules with domain prefix
         run: |
           mkdir -p temp
-          cat geosite-rules/*.txt > temp/combined.txt
+          for f in geosite-rules/*.txt; do
+            # Для каждой строки: если она не пустая и не начинается с domain: или full:, добавляем domain:
+            sed -r '/^(domain:|full:)/! s/^[[:space:]]*$/ /; /^(domain:|full:)/! s/^[[:space:]]*(.+)[[:space:]]*$/domain:\1/' "$f"
+          done > temp/combined.txt
 
-      - name: Debug - show combined file (first 20 lines)
-        run: |
-          echo "=== COMBINED.TXT (первые 20 строк) ==="
-          head -n 20 temp/combined.txt
-          echo "=== КОНЕЦ ==="
+      - name: Debug - show first 20 lines
+        run: head -n 20 temp/combined.txt
 
       - name: Build geosite.dat
         run: |
