@@ -1,8 +1,40 @@
 {
   "input": [
-    {"type": "text", "action": "add", "args": ["instagram", "file://geoip-rules/instagram.txt"]},
-    {"type": "text", "action": "add", "args": ["telegram", "file://geoip-rules/telegram.txt"]},
-    {"type": "text", "action": "add", "args": ["whatsapp", "file://geoip-rules/whatsapp.txt"]}
+    {
+      "type": "text",
+      "action": "add",
+      "args": {
+        "name": "instagram",
+        "uri": "./geoip-rules/instagram.txt",
+        "onlyIPType": "ipv4"
+      }
+    },
+    {
+      "type": "text",
+      "action": "add",
+      "args": {
+        "name": "telegram",
+        "uri": "./geoip-rules/telegram.txt",
+        "onlyIPType": "ipv4"
+      }
+    },
+    {
+      "type": "text",
+      "action": "add",
+      "args": {
+        "name": "whatsapp",
+        "uri": "./geoip-rules/whatsapp.txt",
+        "onlyIPType": "ipv4"
+      }
+    }
   ],
-  "output": [{"type": "v2rayGeoIPDat", "args": ["geoip.dat"]}]
+  "output": [
+    {
+      "type": "v2rayGeoIPDat",
+      "action": "output",
+      "args": {
+        "outputName": "geoip.dat"
+      }
+    }
+  ]
 }
