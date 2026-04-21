@@ -30,15 +30,12 @@ jobs:
 
       - name: Build geosite.dat
         run: |
-          # Переименовываем все .txt файлы в нижний регистр перед копированием
-          mkdir -p temp_rules
+          mkdir -p compiler/data
           for f in my-rules/geosite-rules/*.txt; do
             base=$(basename "$f" .txt)
             lower=$(echo "$base" | tr '[:upper:]' '[:lower:]')
-            cp "$f" "temp_rules/${lower}.txt"
+            cp "$f" "compiler/data/${lower}"
           done
-          cp temp_rules/*.txt compiler/data/
-
           cd compiler
           go run ./ --outputdir=../ --outputname=geosite.dat
 
