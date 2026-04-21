@@ -15,21 +15,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Download domain-list-community binary (dlc.dat)
-        run: |
-          wget -O dlc https://github.com/v2fly/domain-list-community/releases/latest/download/dlc.dat
-          chmod +x dlc
-
-      - name: Prepare rules with domain prefix
-        run: |
-          mkdir -p temp
-          for f in geosite-rules/*.txt; do
-            sed -r '/^(domain:|full:)/! s/^[[:space:]]*$/ /; /^(domain:|full:)/! s/^[[:space:]]*(.+)[[:space:]]*$/domain:\1/' "$f"
-          done > temp/combined.txt
-
-      - name: Build geosite.dat
-        run: |
-          ./dlc -in temp/combined.txt -out geosite.dat
+      - name: Build geosite.dat with official action
+        uses: v2fly/domain-list-community-action@v1
+        with:
+          input-files: geosite-rules/*.txt
+          output-file: geosite.dat
 
       - name: Create Release and Upload Asset
         uses: softprops/action-gh-release@v2
