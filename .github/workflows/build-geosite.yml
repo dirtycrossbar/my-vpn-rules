@@ -1,10 +1,10 @@
 name: Build GeoSite
 
 on:
+  workflow_dispatch:
   push:
     paths:
       - 'geosite-rules/**.txt'
-  workflow_dispatch:
 
 jobs:
   build:
@@ -12,32 +12,23 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Download dlc binary (Linux amd64)
+      - name: Combine files
+        run: cat geosite-rules/*.txt > combined.txt
+
+      - name: Download dlc binary
         run: |
-          wget -O dlc https://github.com/v2fly/domain-list-community/releases/download/20240328144447/dlc-linux-amd64
+          curl -L -o dlc https://github.com/v2fly/domain-list-community/releases/download/20240328144447/dlc-linux-amd64
           chmod +x dlc
 
-      - name: Prepare rules (add domain: prefix if missing)
-        run: |
-          mkdir -p temp
-          for f in geosite-rules/*.txt; do
-            sed -r '/^(domain:|full:)/! s/^[[:space:]]*(.+)[[:space:]]*$/domain:\1/' "$f"
-          done > temp/combined.txt
-
       - name: Build geosite.dat
-        run: ./dlc -in temp/combined.txt -out geosite.dat
+        run: ./dlc -in combined.txt -out geosite.dat
 
-      - name: Create Release and Upload Asset
+      - name: Upload Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: geosite-latest
-          name: GeoSite Latest
-          body: Автоматическая сборка geosite.dat
-          draft: false
-          prerelease: false
           files: geosite.dat
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
