@@ -17,8 +17,9 @@ jobs:
 
       - name: Download geoip binary
         run: |
-          curl -L -o geoip https://github.com/v2fly/geoip/releases/latest/download/geoip-linux-amd64
-          chmod +x geoip
+          wget https://github.com/v2fly/geoip/releases/download/20240411163810/geoip-linux-64
+          chmod +x geoip-linux-64
+          mv geoip-linux-64 geoip
 
       - name: Prepare custom IP list
         run: |
