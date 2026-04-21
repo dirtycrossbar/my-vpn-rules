@@ -30,11 +30,15 @@ jobs:
 
       - name: Build geosite.dat
         run: |
-          # 1. Копируем ваши файлы с доменами в папку data/ внутри компилятора
-          #    Имя файла станет названием категории в geosite.dat
-          cp my-rules/geosite-rules/*.txt compiler/data/
-          
-          # 2. Переходим в папку компилятора и запускаем сборку
+          # Переименовываем все .txt файлы в нижний регистр перед копированием
+          mkdir -p temp_rules
+          for f in my-rules/geosite-rules/*.txt; do
+            base=$(basename "$f" .txt)
+            lower=$(echo "$base" | tr '[:upper:]' '[:lower:]')
+            cp "$f" "temp_rules/${lower}.txt"
+          done
+          cp temp_rules/*.txt compiler/data/
+
           cd compiler
           go run ./ --outputdir=../ --outputname=geosite.dat
 
