@@ -36,15 +36,22 @@ jobs:
           cd compiler
           mkdir -p text
           cp ../my-rules/geoip-rules/*.txt text/
-          echo '{ "input": [' > config.json
+          
+          # Генерируем config.json
+          echo '{' > config.json
+          echo '  "input": [' >> config.json
           first=true
           for f in text/*.txt; do
             name=$(basename "$f" .txt)
             if [ "$first" = true ]; then first=false; else echo ',' >> config.json; fi
-            echo "{\"type\": \"text\", \"action\": \"add\", \"args\": [\"$name\", \"$f\"]}" >> config.json
+            echo "    {\"type\": \"text\", \"action\": \"add\", \"args\": [\"$name\", \"$f\"]}" >> config.json
           done
-          echo '], "output": [{"type": "v2rayGeoIPDat", "args": ["geoip.dat"]}] }' >> config.json
-          go run ./
+          echo '  ],' >> config.json
+          echo '  "output": [{"type": "v2rayGeoIPDat", "args": ["geoip.dat"]}]' >> config.json
+          echo '}' >> config.json
+          
+          # Запускаем конвертацию с явным указанием подкоманды convert
+          go run ./ convert -c config.json
           cp geoip.dat ../geoip.dat
 
       - name: Create Release and Upload Asset
