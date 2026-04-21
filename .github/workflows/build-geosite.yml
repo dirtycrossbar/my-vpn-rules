@@ -12,20 +12,33 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout your repository
+        uses: actions/checkout@v4
+        with:
+          path: my-rules
 
-      - name: Combine files
-        run: cat geosite-rules/*.txt > combined.txt
+      - name: Checkout domain-list-community compiler
+        uses: actions/checkout@v4
+        with:
+          repository: v2fly/domain-list-community
+          path: compiler
 
-      - name: Download dlc binary
-        run: |
-          curl -L -o dlc https://github.com/v2fly/domain-list-community/releases/download/20240328144447/dlc-linux-amd64
-          chmod +x dlc
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
 
       - name: Build geosite.dat
-        run: ./dlc -in combined.txt -out geosite.dat
+        run: |
+          # 1. Копируем ваши файлы с доменами в папку data/ внутри компилятора
+          #    Имя файла станет названием категории в geosite.dat
+          cp my-rules/geosite-rules/*.txt compiler/data/
+          
+          # 2. Переходим в папку компилятора и запускаем сборку
+          cd compiler
+          go run ./ --outputdir=../ --outputname=geosite.dat
 
-      - name: Upload Release
+      - name: Create Release and Upload Asset
         uses: softprops/action-gh-release@v2
         with:
           tag_name: geosite-latest
