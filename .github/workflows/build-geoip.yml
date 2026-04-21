@@ -33,10 +33,10 @@ jobs:
           # Объединяем все IP-файлы в один
           cat my-rules/geoip-rules/*.txt > custom-ips.txt
           
-          # Создаём конфиг для компилятора
-          echo '["text:custom-ips.txt"]' > config.json
+          # Создаём правильный JSON-конфиг
+          echo '{"input": ["text:custom-ips.txt"], "output": "geoip.dat"}' > config.json
           
-          # Переходим в папку компилятора и запускаем сборку (без -o)
+          # Переходим в папку компилятора и запускаем сборку
           cd compiler
           go run ./ -c ../config.json
           
