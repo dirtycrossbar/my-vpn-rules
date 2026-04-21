@@ -1,5 +1,4 @@
 name: Build GeoIP
-
 on:
   workflow_dispatch:
   push:
@@ -20,7 +19,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.25'
+          go-version: '1.22'
 
       - name: Build geoip.dat
         run: |
@@ -28,7 +27,7 @@ jobs:
           cd compiler
           cp ../config.json .
           go run ./ convert -c config.json
-          cp geoip.dat ../geoip.dat
+          cp output/dat/geoip.dat ../geoip.dat
 
       - name: Create Release and Upload Asset
         uses: softprops/action-gh-release@v2
