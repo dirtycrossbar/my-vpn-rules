@@ -15,26 +15,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.21'
-
-      - name: Clone v2fly/geoip
+      - name: Download geoip binary
         run: |
-          git clone https://github.com/v2fly/geoip.git
-          cd geoip
-          go mod download
+          curl -L -o geoip https://github.com/v2fly/geoip/releases/latest/download/geoip-linux-amd64
+          chmod +x geoip
 
       - name: Prepare custom IP list
         run: |
           cat geoip-rules/*.txt > custom-ips.txt
-          echo "text:custom-ips.txt" >> geoip/config.json
+          echo "text:custom-ips.txt" > config.json
 
       - name: Build geoip.dat
         run: |
-          cd geoip
-          go run ./ -c config.json
+          ./geoip -c config.json -o geoip.dat
 
       - name: Create Release and Upload Asset
         uses: softprops/action-gh-release@v2
@@ -44,6 +37,6 @@ jobs:
           body: Автоматическая сборка geoip.dat
           draft: false
           prerelease: false
-          files: geoip/geoip.dat
+          files: geoip.dat
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
