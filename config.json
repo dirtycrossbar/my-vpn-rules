@@ -5,7 +5,7 @@
       "action": "add",
       "args": {
         "name": "instagram",
-        "uri": "./geoip-rules/instagram.txt",
+        "uri": "../geoip-rules/instagram.txt",
         "onlyIPType": "ipv4"
       }
     },
@@ -14,7 +14,7 @@
       "action": "add",
       "args": {
         "name": "telegram",
-        "uri": "./geoip-rules/telegram.txt",
+        "uri": "../geoip-rules/telegram.txt",
         "onlyIPType": "ipv4"
       }
     },
@@ -23,7 +23,7 @@
       "action": "add",
       "args": {
         "name": "whatsapp",
-        "uri": "./geoip-rules/whatsapp.txt",
+        "uri": "../geoip-rules/whatsapp.txt",
         "onlyIPType": "ipv4"
       }
     }
