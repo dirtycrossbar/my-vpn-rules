@@ -6,20 +6,46 @@ on:
     paths:
       - 'geoip-rules/**.txt'
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
       - name: Checkout your repository
         uses: actions/checkout@v4
-
-      - name: Build geoip.dat using official action
-        uses: v2fly/geoip-action@v1
         with:
-          input: geoip-rules/*.txt
-          output: geoip.dat
+          path: my-rules
+
+      - name: Checkout Loyalsoldier/geoip compiler
+        uses: actions/checkout@v4
+        with:
+          repository: Loyalsoldier/geoip
+          path: compiler
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: compiler/go.mod
+          cache: true
+          cache-dependency-path: compiler/go.sum
+
+      - name: Build geoip.dat
+        run: |
+          cd compiler
+          mkdir -p text
+          cp ../my-rules/geoip-rules/*.txt text/
+          echo '{ "input": [' > config.json
+          first=true
+          for f in text/*.txt; do
+            name=$(basename "$f" .txt)
+            if [ "$first" = true ]; then first=false; else echo ',' >> config.json; fi
+            echo "{\"type\": \"text\", \"action\": \"add\", \"args\": [\"$name\", \"$f\"]}" >> config.json
+          done
+          echo '], "output": [{"type": "v2rayGeoIPDat", "args": ["geoip.dat"]}] }' >> config.json
+          go run ./
+          cp geoip.dat ../geoip.dat
 
       - name: Create Release and Upload Asset
         uses: softprops/action-gh-release@v2
