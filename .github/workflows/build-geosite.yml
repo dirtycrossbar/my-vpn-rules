@@ -15,22 +15,17 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Download domain-list-community binary
+      - name: Download domain-list-community binary (dlc.dat)
         run: |
-          wget https://github.com/v2fly/domain-list-community/releases/download/20240328144447/domain-list-community-linux-64
-          chmod +x domain-list-community-linux-64
-          mv domain-list-community-linux-64 dlc
+          wget -O dlc https://github.com/v2fly/domain-list-community/releases/latest/download/dlc.dat
+          chmod +x dlc
 
       - name: Prepare rules with domain prefix
         run: |
           mkdir -p temp
           for f in geosite-rules/*.txt; do
-            # Для каждой строки: если она не пустая и не начинается с domain: или full:, добавляем domain:
             sed -r '/^(domain:|full:)/! s/^[[:space:]]*$/ /; /^(domain:|full:)/! s/^[[:space:]]*(.+)[[:space:]]*$/domain:\1/' "$f"
           done > temp/combined.txt
-
-      - name: Debug - show first 20 lines
-        run: head -n 20 temp/combined.txt
 
       - name: Build geosite.dat
         run: |
