@@ -19,10 +19,12 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
-      - name: Preprocess normalize filenames and content
+      - name: Preprocess: normalize filenames and content
         run: |
           cd my-rules
-          find geosite-rules -name '*.txt' | while read f; do
+          
+          # 1. Переименовываем файлы в нижний регистр
+          find geosite-rules -type f -name '*.txt' | while IFS= read -r f; do
             dir=$(dirname "$f")
             base=$(basename "$f")
             lower=$(echo "$base" | tr '[:upper:]' '[:lower:]')
@@ -31,12 +33,17 @@ jobs:
               git mv "$f" "$dir/$lower"
             fi
           done
-          find geosite-rules -name '*.txt' | while read f; do
-            if grep -q 'geosite:[A-Z]' "$f"; then
-              echo "Fixing uppercase refs in: $f"
-              sed -i -E 's/geosite:([A-Za-z0-9_-]+)/geosite:\L\1/g' "$f"
-            fi
+          
+          # 2. Исправляем ВСЕ заглавные буквы в именах списков внутри файлов
+          # Заменяем любые слова из заглавных букв/цифр/подчёркиваний на строчные
+          find geosite-rules -type f -name '*.txt' | while IFS= read -r f; do
+            # Создаём временный файл с исправлениями
+            tmp=$(mktemp)
+            # Заменяем любые потенциальные имена списков (ALL_CHEV, Telegram, etc.) на lowercase
+            sed 's/\b\([A-Z][A-Z0-9_]*\)\b/\L\1/g' "$f" > "$tmp" && mv "$tmp" "$f"
           done
+          
+          # 3. Коммитим изменения, если есть
           if ! git diff --quiet || ! git diff --cached --quiet; then
             git config user.name "github-actions[bot]"
             git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -63,6 +70,7 @@ jobs:
         run: |
           mkdir -p compiler/data
           for f in my-rules/geosite-rules/*.txt; do
+            [ -f "$f" ] || continue
             base=$(basename "$f" .txt)
             lower=$(echo "$base" | tr '[:upper:]' '[:lower:]')
             cp "$f" "compiler/data/${lower}"
