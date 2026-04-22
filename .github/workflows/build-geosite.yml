@@ -19,39 +19,33 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
-      - name: Preprocess: normalize filenames and content
+      - name: Preprocess normalize filenames and content
         run: |
           cd my-rules
-          
-          # 1. Переименовываем файлы с заглавными буквами в нижний регистр
           find geosite-rules -name '*.txt' | while read f; do
             dir=$(dirname "$f")
             base=$(basename "$f")
             lower=$(echo "$base" | tr '[:upper:]' '[:lower:]')
             if [ "$base" != "$lower" ]; then
-              echo "🔧 Renaming: $f → $dir/$lower"
+              echo "Renaming: $f -> $dir/$lower"
               git mv "$f" "$dir/$lower"
             fi
           done
-          
-          # 2. Исправляем внутри файлов ссылки geosite:NAME → geosite:name
           find geosite-rules -name '*.txt' | while read f; do
             if grep -q 'geosite:[A-Z]' "$f"; then
-              echo "🔧 Fixing uppercase refs in: $f"
+              echo "Fixing uppercase refs in: $f"
               sed -i -E 's/geosite:([A-Za-z0-9_-]+)/geosite:\L\1/g' "$f"
             fi
           done
-          
-          # 3. Если были изменения — коммитим и пушим
           if ! git diff --quiet || ! git diff --cached --quiet; then
             git config user.name "github-actions[bot]"
             git config user.email "github-actions[bot]@users.noreply.github.com"
             git add -A
-            git commit -m "chore: auto-normalize geosite rules to lowercase [skip ci]"
+            git commit -m "chore: auto-normalize geosite rules [skip ci]"
             git push
-            echo "✅ Changes committed and pushed"
+            echo "Changes committed and pushed"
           else
-            echo "✅ No changes needed"
+            echo "No changes needed"
           fi
 
       - name: Checkout domain-list-community compiler
