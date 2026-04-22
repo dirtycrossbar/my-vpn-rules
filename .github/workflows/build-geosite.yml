@@ -41,7 +41,7 @@ jobs:
             fi
           done
           
-          # 3. Если были изменения — коммитим и пушим (опционально)
+          # 3. Если были изменения — коммитим и пушим
           if ! git diff --quiet || ! git diff --cached --quiet; then
             git config user.name "github-actions[bot]"
             git config user.email "github-actions[bot]@users.noreply.github.com"
