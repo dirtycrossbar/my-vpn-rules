@@ -68,7 +68,6 @@ jobs:
         run: |
           mkdir -p compiler/data
           for f in my-rules/geosite-rules/*.txt; do
-            [ -f "$f" ] || continue
             base=$(basename "$f" .txt)
             lower=$(echo "$base" | tr '[:upper:]' '[:lower:]')
             cp "$f" "compiler/data/${lower}"
