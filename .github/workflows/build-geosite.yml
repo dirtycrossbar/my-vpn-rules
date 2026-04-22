@@ -19,7 +19,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
-      - name: Preprocess: normalize filenames and content
+      - name: Preprocess normalize filenames and content
         run: |
           cd my-rules
           
@@ -34,23 +34,21 @@ jobs:
             fi
           done
           
-          # 2. Исправляем ВСЕ заглавные буквы в именах списков внутри файлов
-          # Заменяем любые слова из заглавных букв/цифр/подчёркиваний на строчные
+          # 2. Исправляем ВСЕ заглавные слова, похожие на имена списков (не только с geosite:)
           find geosite-rules -type f -name '*.txt' | while IFS= read -r f; do
-            # Создаём временный файл с исправлениями
-            tmp=$(mktemp)
-            # Заменяем любые потенциальные имена списков (ALL_CHEV, Telegram, etc.) на lowercase
-            sed 's/\b\([A-Z][A-Z0-9_]*\)\b/\L\1/g' "$f" > "$tmp" && mv "$tmp" "$f"
+            # Заменяем любые слова из ЗАГЛАВНЫХ_БУКВ_ЦИФР на строчные
+            # Пример: ALL_CHEV -> all_chev, Telegram -> telegram
+            perl -pi -e 's/\b([A-Z][A-Z0-9_]+)\b/\L$1/g' "$f"
           done
           
-          # 3. Коммитим изменения, если есть
+          # 3. Коммитим изменения
           if ! git diff --quiet || ! git diff --cached --quiet; then
             git config user.name "github-actions[bot]"
             git config user.email "github-actions[bot]@users.noreply.github.com"
             git add -A
-            git commit -m "chore: auto-normalize geosite rules [skip ci]"
+            git commit -m "chore: normalize geosite rules [skip ci]"
             git push
-            echo "Changes committed and pushed"
+            echo "Changes committed"
           else
             echo "No changes needed"
           fi
