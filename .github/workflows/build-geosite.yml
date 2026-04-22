@@ -22,9 +22,7 @@ jobs:
       - name: Preprocess normalize filenames and content
         run: |
           cd my-rules
-          
-          # 1. Переименовываем файлы в нижний регистр
-          find geosite-rules -type f -name '*.txt' | while IFS= read -r f; do
+          find geosite-rules -type f -name '*.txt' 2>/dev/null | while IFS= read -r f; do
             dir=$(dirname "$f")
             base=$(basename "$f")
             lower=$(echo "$base" | tr '[:upper:]' '[:lower:]')
@@ -32,16 +30,8 @@ jobs:
               echo "Renaming: $f -> $dir/$lower"
               git mv "$f" "$dir/$lower"
             fi
+            perl -pi -e 's/\b([A-Z][A-Z0-9_]+)\b/\L$1/g' "$f" 2>/dev/null || true
           done
-          
-          # 2. Исправляем ВСЕ заглавные слова, похожие на имена списков (не только с geosite:)
-          find geosite-rules -type f -name '*.txt' | while IFS= read -r f; do
-            # Заменяем любые слова из ЗАГЛАВНЫХ_БУКВ_ЦИФР на строчные
-            # Пример: ALL_CHEV -> all_chev, Telegram -> telegram
-            perl -pi -e 's/\b([A-Z][A-Z0-9_]+)\b/\L$1/g' "$f"
-          done
-          
-          # 3. Коммитим изменения
           if ! git diff --quiet || ! git diff --cached --quiet; then
             git config user.name "github-actions[bot]"
             git config user.email "github-actions[bot]@users.noreply.github.com"
