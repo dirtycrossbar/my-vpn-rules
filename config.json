@@ -14,7 +14,7 @@
       "action": "add",
       "args": {
         "name": "allchev",
-        "uri": "../geoip-rules/all_chev.txt",
+        "uri": "../geoip-rules/allchev.txt",
         "onlyIPType": "ipv4"
       }
     },
