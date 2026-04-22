@@ -13,28 +13,34 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
+      - name: Checkout your repository
         uses: actions/checkout@v4
+        with:
+          path: my-rules
+
+      - name: Checkout domain-list-community compiler
+        uses: actions/checkout@v4
+        with:
+          repository: v2fly/domain-list-community
+          path: compiler
 
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.25'
+          go-version: '1.22'
 
       - name: Build geosite.dat
         run: |
-          git clone https://github.com/v2fly/domain-list-community.git compiler
-          cd compiler
-          
-          # Копируем ваши файлы в папку data/
-          cp ../geosite-rules/*.txt data/
-          
-          # Обрабатываем файлы: добавляем domain: к строкам без префикса
-          for f in data/*.txt; do
-            sed -i -E '/^(domain:|full:)/! s/^[[:space:]]*(.+)[[:space:]]*$/domain:\1/' "$f"
+          mkdir -p compiler/data
+          for f in my-rules/geosite-rules/*.txt; do
+            # Берём имя файла, убираем расширение, приводим к нижнему регистру
+            base=$(basename "$f" .txt | tr '[:upper:]' '[:lower:]')
+            # Копируем в папку data с правильным именем (без .txt)
+            cp "$f" "compiler/data/${base}"
+            # Добавляем domain: к строкам, где нет domain: или full:
+            sed -i -E '/^(domain:|full:)/! s/^[[:space:]]*(.+)[[:space:]]*$/domain:\1/' "compiler/data/${base}"
           done
-          
-          # Запускаем сборку
+          cd compiler
           go run ./ --outputdir=../ --outputname=geosite.dat
 
       - name: Create Release and Upload Asset
