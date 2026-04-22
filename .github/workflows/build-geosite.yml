@@ -1,66 +1,48 @@
-name: Build GeoIP
+name: Build GeoSite
+
 on:
   workflow_dispatch:
   push:
     paths:
-      - 'geoip-rules/**.txt'
-
-permissions:
-  contents: write
+      - 'geosite-rules/**.txt'
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
-      - name: Checkout repository
+      - name: Checkout your repository
         uses: actions/checkout@v4
+        with:
+          path: my-rules
+
+      - name: Checkout domain-list-community compiler
+        uses: actions/checkout@v4
+        with:
+          repository: v2fly/domain-list-community
+          path: compiler
 
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
           go-version: '1.22'
 
-      - name: Generate config.json dynamically
+      - name: Build geosite.dat
         run: |
-          # Инициализируем JSON
-          echo '{"input":[' > config.json
-          first=true
-          
-          # Проходим по всем .txt файлам в папке
-          for f in geoip-rules/*.txt; do
-            [ -f "$f" ] || continue
+          mkdir -p compiler/data
+          for f in my-rules/geosite-rules/*.txt; do
             base=$(basename "$f" .txt)
-            # Приводим имя к нижнему регистру (для единообразия с geosite)
             lower=$(echo "$base" | tr '[:upper:]' '[:lower:]')
-            
-            if [ "$first" = true ]; then
-              first=false
-            else
-              printf ',' >> config.json
-            fi
-            
-            # Добавляем блок в JSON
-            printf '{"type":"text","action":"add","args":{"name":"%s","uri":"../geoip-rules/%s.txt","onlyIPType":"ipv4"}}' "$lower" "$base" >> config.json
+            cp "$f" "compiler/data/${lower}"
           done
-          
-          # Закрываем массив input и добавляем секцию вывода
-          echo '],"output":[{"type":"v2rayGeoIPDat","action":"output","args":{"outputName":"geoip.dat"}}]}' >> config.json
-          
-          echo "✅ Generated config.json:"
-          cat config.json
-
-      - name: Build geoip.dat
-        run: |
-          git clone https://github.com/Loyalsoldier/geoip.git compiler
           cd compiler
-          cp ../config.json .
-          go run ./ convert -c config.json
-          cp output/dat/geoip.dat ../geoip.dat
+          go run ./ --outputdir=../ --outputname=geosite.dat
 
       - name: Create Release and Upload Asset
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: geoip-latest
-          files: geoip.dat
+          tag_name: geosite-latest
+          files: geosite.dat
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
